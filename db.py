@@ -1,14 +1,23 @@
 import streamlit as st
 import mysql.connector
 
+db_config = {
+    "host" : "localhost",
+    "user" : "root",
+    "password" : "7439",
+    "database" : "customer_management",
+    "port": 3306
+}
+
 def get_connection():
     try:
-        conn = mysql.connector.connect(
-            host = "127.0.0.1",
-            user = "root",
-            password = "",
-            database = "customer_management"
-        )
+        # conn = mysql.connector.connect(
+        #     host = "127.0.0.1",
+        #     user = "root",
+        #     password = "7439",
+        #     database = "customer_management"
+        # )
+        conn = mysql.connector.connect(**db_config)
         return conn
     except mysql.connector.Error as e:
         st.error(f"Connection Error: {e}")

@@ -3,6 +3,7 @@ from db import fetch_dealers, get_connection,fetch_price
 
 def is_valid_phone(phone):
     return phone.isdigit() and len(phone) == 10
+        
 
 def show():
     st.title("Dealer List")
@@ -20,7 +21,7 @@ def show():
         if data_info:
             st.subheader("ALL Dealers")
             st.table(
-                [{"ID": row[0], "Name" :row[1], "Contact Number": row[2]} for row in data_info]
+                [{"ID": row[0], "Name" :row[1], "Contact Number": row[2], "Address": row[3]} for row in data_info]
             )
     with col2:
         if data_price:
@@ -70,33 +71,33 @@ def show():
         with col:
             name = st.text_input("Name:",key="new_dealer_name")
         with col1:
-            phnumber = st.text_input("Contact Number:",key="new_dealer_phonenumber",value=None)
-    
+            phnumber = st.text_input("Contact Number:",key="new_dealer_phonenumber",value="")
+        with col:
+            add = st.text_area("Address:",key="new_dealer_address",value="")
         with col:
             if st.button("save"):
-                if name and is_valid_phone(phnumber):
+                if not (name and is_valid_phone(phnumber)):
+                        st.warning("Fill all fields..")
+                else:
                     conn = get_connection()
                     if conn:
 
-                        phnumber = int(phnumber) if int(phnumber) else None
+                        phnumber_int = int(phnumber) if phnumber and phnumber.isdigit() else None
+                        add = add if add else None
                         cursor = conn.cursor()
-                        sql = "INSERT INTO dealer_info (name, ph) VALUES(%s,%s)"
+                        sql = "INSERT INTO dealer_info (name, number, address) VALUES(%s,%s,%s)"
                         
-                        cursor.execute(sql,(name, phnumber))
+                        cursor.execute(sql,(name, phnumber_int, add))
                         conn.commit()
                         cursor.close()
                         conn.close()
                         
                         st.success("Successfully Added...")
                         st.session_state["show_new_dealer"] = False
-                        st.session_state["show_update_price"] = ""
-                        st.session_state["show_edit"] = ""
-                        
-                    else:
-                        st.warning("Fill all fields..")
-                else:
-                    st.warning("Wrong Entry. Try again...")
-                st.rerun()
+                        st.session_state["show_update_price"] = False
+                        st.session_state["show_edit"] = False
+                    
+                
 
         with col1:
             close_clicked = st.button("Close")
@@ -120,7 +121,7 @@ def show():
         with col2:
             date = st.date_input("Date")
         with col1:
-            st.text_input("Name",name,disabled=True)
+            st.text_input("Name (For check)",name,disabled=True)
         with col2:
             price = st.number_input("Price",value=None)
 
@@ -133,7 +134,7 @@ def show():
                 conn = get_connection()
                 if conn:
                     cursor = conn.cursor()
-                    sql = "INSERT into dealer_price (id,name,date,price) VALUES(%s,%s,%s,%s)"
+                    sql = "INSERT into dealer_price (dealer_id,name,date,price) VALUES(%s,%s,%s,%s)"
                     cursor.execute(sql,(id,name,date,price))
                     conn.commit()
                     cursor.close()
